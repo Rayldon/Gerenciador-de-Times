@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "824257471712",
+    "project_id": "gerenciador-de-times-c8727",
+    "storage_bucket": "gerenciador-de-times-c8727.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:824257471712:android:6d2f315b860e8a5f6f9c85",
+        "android_client_info": {
+          "package_name": "com.raytech.gerenciadortimes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "824257471712-2st46o2ovtj7l8b2jvat3jnck8al8v3q.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB25TtEaeTZeO5mfcY5Gzd_SkaIJUE53F8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "824257471712-2st46o2ovtj7l8b2jvat3jnck8al8v3q.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
