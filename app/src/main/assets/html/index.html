@@ -203,13 +203,13 @@
 						return false;
 					}
 
-					//if (qtdTime1 < qtd && qtdTime1 <= qtdTime2) {
-					//	$scope.dados.time1.push(jogador);
-					//} else if (qtdTime2 < qtd) {
-					//	$scope.dados.time2.push(jogador);
-					//} else {
+					if (qtdTime1 < qtd) {
+						$scope.dados.time1.push(jogador);
+					} else if (qtdTime2 < qtd) {
+						$scope.dados.time2.push(jogador);
+					} else {
 						$scope.dados.aguardando.push(jogador);
-					//}
+					}
 					this.novoJogador = "";
 					$scope.selecionarJogador(jogador);
 					salvarSessao();
