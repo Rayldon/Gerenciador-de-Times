@@ -160,7 +160,6 @@
 			}
 
 			$scope.desfazer = function () {
-				buscarListaFirebase($scope.dados.nomeLista);
 				if ($scope.dados.posicaoHistorico > 1) {
 					$scope.dados.posicaoHistorico = $scope.dados.posicaoHistorico - 1;
 					var dados = JSON.parse($scope.dados.historico[$scope.dados.posicaoHistorico - 1]);
@@ -173,7 +172,6 @@
 			}
 
 			$scope.refazer = function () {
-				buscarListaFirebase($scope.dados.nomeLista);
 				if ($scope.dados.historico.length > $scope.dados.posicaoHistorico) {
 					$scope.dados.posicaoHistorico = $scope.dados.posicaoHistorico + 1;
 					var dados = JSON.parse($scope.dados.historico[$scope.dados.posicaoHistorico - 1]);
@@ -196,8 +194,6 @@
 				var jogador = this.novoJogador;
 				if (jogador) {
 					$scope.loading = true;
-					buscarListaFirebase($scope.dados.nomeLista);
-
 					if ($scope.dados.time1.indexOf(jogador) >= 0 || $scope.dados.time2.indexOf(jogador) >= 0 || $scope.dados.aguardando.indexOf(jogador) >= 0) {
 						alert("O jogador já existe!");
 						return false;
@@ -227,7 +223,6 @@
 
 			$scope.concluirEditarQuantidade = function () {
 				$scope.loading = true;
-				buscarListaFirebase($scope.dados.nomeLista);
 				var qtd = $scope.dados.quantidade;
 				var time = $scope.dados.time1.length <= $scope.dados.time2.length ? 'time1' : 'time2';
 				if (qtd < $scope.dados.time1.length) {
@@ -255,7 +250,6 @@
 
 			$scope.removerJogador = function () {
 				$scope.loading = true;
-				buscarListaFirebase($scope.dados.nomeLista);
 				var lista = $scope.timeSelecionado;
 				var jogador = $scope.dados.jogadorSelecionado
 				$scope.dados[lista] = $scope.dados[lista].filter(x => x != jogador);
@@ -269,7 +263,6 @@
 
 			$scope.substituirJogador = function (jogadorNovo) {
 				$scope.loading = true;
-				buscarListaFirebase($scope.dados.nomeLista);
 				var listaOrigem = $scope.dados.time1.some(x => x == $scope.dados.jogadorSelecionado) ? "time1" : "aguardando";
 				listaOrigem = $scope.dados.time2.some(x => x == $scope.dados.jogadorSelecionado) ? "time2" : listaOrigem;
 
@@ -302,7 +295,6 @@
 			}
 
 			$scope.rotacionarFila = function (fila) {
-				buscarListaFirebase($scope.dados.nomeLista);
 				/*if (fila == 'inicio') {
 					var lista = [];
 					lista.push(...$scope.dados[$scope.timeSelecionado]);
@@ -323,7 +315,6 @@
 			$scope.up = function (jogador) {
 				if($scope.dados.jogadorSelecionado == jogador){
 					$scope.loading = true;
-					buscarListaFirebase($scope.dados.nomeLista);
 					var lista = [];
 					lista.push(...$scope.dados.time1);
 					lista.push(...$scope.dados.time2);
@@ -352,13 +343,12 @@
 					}
 					$scope.loading = false;
 				}
-				$scope.selecionarJogador(jogador);
+				//$scope.selecionarJogador(jogador);
 			}
 
 			$scope.down = function (jogador) {
 				if($scope.dados.jogadorSelecionado == jogador){
 					$scope.loading = true;
-					buscarListaFirebase($scope.dados.nomeLista);
 					$scope.dados.jogadorSelecionado = jogador;
 					var lista = [];
 					lista.push(...$scope.dados.time1);
@@ -379,7 +369,7 @@
 					salvarSessao()
 					$scope.loading = false;
 				}
-				$scope.selecionarJogador(jogador);
+				//$scope.selecionarJogador(jogador);
 			}
 
 			$scope.corTabela = function (jogador, cor1, cor2) {
@@ -426,7 +416,6 @@
 			}
 
 			$scope.escalarProximoTime = function(){
-				buscarListaFirebase($scope.dados.nomeLista);
 				var totalTime = $scope.dados[$scope.timeSelecionado].length;
 				$scope.dados[$scope.timeSelecionado].push(...$scope.dados.aguardando.slice(totalTime, $scope.dados.quantidade));
 				$scope.dados.aguardando.splice(0, $scope.dados.quantidade-totalTime);
