@@ -93,7 +93,7 @@ public class MainActivity extends AppCompatActivity {
                     carregarLista(lista);
                     ultimaAtualizacao = new Date();
                 }
-                return true;
+                return false;
             }
         });
     }
