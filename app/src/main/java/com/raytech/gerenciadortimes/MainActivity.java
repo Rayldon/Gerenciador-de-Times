@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
@@ -27,15 +28,19 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     final Context context = this;
     private WebView webview;
     private MainActivity activity;
     public String url = "";
+    private String lista = "";
+    private Date ultimaAtualizacao = new Date();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
@@ -79,6 +84,18 @@ public class MainActivity extends AppCompatActivity {
         }
 
         webview.loadUrl("file:///android_asset/html/index.html");
+
+        webview.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent event) {
+                long diff = new Date().getTime() - ultimaAtualizacao.getTime();
+                if(!lista.equals("") && TimeUnit.MILLISECONDS.toSeconds(diff) > 20) {
+                    carregarLista(lista);
+                    ultimaAtualizacao = new Date();
+                }
+                return true;
+            }
+        });
     }
 
     @Override
@@ -132,6 +149,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void carregarLista(String lista){
         lista = lista.trim().toUpperCase();
+        this.lista = lista;
         db.collection("listas").whereEqualTo("lista", lista).get()
             .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                 @Override
