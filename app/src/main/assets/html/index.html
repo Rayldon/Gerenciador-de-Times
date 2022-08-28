@@ -303,19 +303,20 @@
 
 			$scope.rotacionarFila = function (fila) {
 				buscarListaFirebase($scope.dados.nomeLista);
-				if (fila == 'inicio') {
+				/*if (fila == 'inicio') {
 					var lista = [];
 					lista.push(...$scope.dados[$scope.timeSelecionado]);
 					$scope.dados[$scope.timeSelecionado] = [];
 					$scope.concluirEditarQuantidade();
 					lista.push(...$scope.dados.aguardando);
 					$scope.dados.aguardando = lista;
-				} else {
+				} else {*/
 					$scope.dados.aguardando.push(...$scope.dados[$scope.timeSelecionado]);
 					$scope.dados[$scope.timeSelecionado] = [];
-					//$scope.concluirEditarQuantidade();
-					$('#modalMensagemSubirLista').modal('show');
-				}
+					$scope.concluirEditarQuantidade();
+					//$('#modalMensagemSubirLista').modal('show');
+					escalarProximoTime();
+				//}
 				salvarSessao();
 			}
 
@@ -639,14 +640,14 @@
 				<div class="modal-body">
 					<p><b>Selecione uma opção:</b></p>
 					<p style="margin:20px 0px 38px 0px" ng-if="dados[timeSelecionado].length > 0" ng-click="rotacionarFila('fim')" onclick="$('#menuAuxiliar').modal('hide');">
-						Enviar o <b>{{timeSelecionado == 'time1' ? 'Time A' : 'Time B'}}</b> para a fila de espera
+						Substituir o <b>{{timeSelecionado == 'time1' ? 'Time A' : 'Time B'}}</b> pelo próximo time da fila de espera
 					</p>
 					<!--p style="margin:20px 0px 38px 0px" ng-click="rotacionarFila('inicio')" onclick="$('#menuAuxiliar').modal('hide');">
 						Enviar time para o início da fila de espera e substituir por próximo time da fila
 					</p-->
-					<p style="margin:20px 0px 38px 0px" ng-if="dados[timeSelecionado].length <= 0" ng-click="escalarProximoTime()" onclick="$('#menuAuxiliar').modal('hide');">
+					<!--p style="margin:20px 0px 38px 0px" ng-if="dados[timeSelecionado].length <= 0" ng-click="escalarProximoTime()" onclick="$('#menuAuxiliar').modal('hide');">
 						Escalar próximo time da lista de espera
-					</p>
+					</p-->
 				</div>
 			</div>
 		</div>
