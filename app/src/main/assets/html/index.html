@@ -196,10 +196,11 @@
 					$scope.loading = true;
 					if ($scope.dados.time1.indexOf(jogador) >= 0 || $scope.dados.time2.indexOf(jogador) >= 0 || $scope.dados.aguardando.indexOf(jogador) >= 0) {
 						alert("O jogador já existe!");
+						$scope.loading = false;
 						return false;
 					}
 
-					if (qtdTime1 < qtd) {
+					if (qtdTime1 < qtd && qtdTime1 <= qtdTime2) {
 						$scope.dados.time1.push(jogador);
 					} else if (qtdTime2 < qtd) {
 						$scope.dados.time2.push(jogador);
@@ -209,6 +210,9 @@
 					this.novoJogador = "";
 					$scope.selecionarJogador(jogador);
 					salvarSessao();
+					setTimeout(function(){
+						buscarListaFirebase(localStorage.lista);
+					}, 1000);
 					$scope.loading = false;
 				}
 			}
@@ -403,11 +407,13 @@
 
 			$scope.carregarLista = function(json){
 				if(json){
-					$scope.dados = json;
+					if(localStorage.dados != JSON.stringify(json)){
+						$scope.dados = json;
+						localStorage.dados = JSON.stringify(json);
+						$scope.jsonString = localStorage.dados;
+					}
 					$scope.naoEncontrado = false;
-					localStorage.dados = JSON.stringify(json);
 					localStorage.lista = json.nomeLista;
-					$scope.jsonString = localStorage.dados;
 					$('#modalAbrirLista').modal('hide');
 				}else{
 					$scope.naoEncontrado = true;
@@ -546,7 +552,7 @@
 		<div class="col-sm-12 col-lg-12">
 			<div class="col-sm-5 col-lg-5">
 				<table id="table" class="table blue">
-					<th colspan="3" width="81%">Time A</th>
+					<th colspan="4" width="81%">Time A</th>
 					<th onclick="$('#menuAuxiliar').modal('show');" ng-click="selecionarTime('time1')" class="text-center">
 						<span class="glyphicon glyphicon-cog"></span>
 					</th>
@@ -558,9 +564,9 @@
 						<td align="center" width="7%" ng-click="down(jogador)">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:20px"></span>
 						</td>
-						<!--td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+						<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
 							<span class="glyphicon glyphicon-refresh"></span>
-						</td-->
+						</td>
 						<td ng-click="exibirModalExcluir(jogador, 'time1')" align="center">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
 						</td>

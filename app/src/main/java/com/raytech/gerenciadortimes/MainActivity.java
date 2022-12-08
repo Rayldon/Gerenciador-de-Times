@@ -2,7 +2,6 @@ package com.raytech.gerenciadortimes;
 
 import static android.content.ContentValues.TAG;
 
-import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,19 +22,16 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
-    final Context context = this;
     private WebView webview;
     private MainActivity activity;
     public String url = "";
@@ -104,8 +100,8 @@ public class MainActivity extends AppCompatActivity {
         menu.add(0, 1, Menu.NONE, "Abrir lista");
         menu.add(0, 1, Menu.NONE, "Nova lista");
         menu.add(0, 1, Menu.NONE, "Limpar lista");
-        //menu.add(0, 1, Menu.NONE, "Desfazer");
-        //menu.add(0, 1, Menu.NONE, "Refazer");
+        menu.add(0, 1, Menu.NONE, "Desfazer");
+        menu.add(0, 1, Menu.NONE, "Refazer");
         return true;
     }
 
