@@ -101,7 +101,7 @@ public class MainActivity extends AppCompatActivity {
         menu.add(0, 1, Menu.NONE, "Nova lista");
         menu.add(0, 1, Menu.NONE, "Limpar lista");
         menu.add(0, 1, Menu.NONE, "Desfazer");
-        menu.add(0, 1, Menu.NONE, "Refazer");
+        //menu.add(0, 1, Menu.NONE, "Refazer");
         return true;
     }
 

@@ -83,6 +83,7 @@
 
 			this.novoJogador = "";
 			$scope.loading = false;
+			$scope.usuarioExistente = false;
 			$scope.jsonString = localStorage.lista;
 			$scope.editarQuantidade = false;
 			$scope.todosJogadores = [];
@@ -167,6 +168,8 @@
 					$scope.dados.time2 = dados.time2;
 					$scope.dados.aguardando = dados.aguardando;
 					$scope.dados.quantidade = dados.quantidade;
+					$scope.dados.historico = $scope.dados.historico.slice(0, $scope.dados.posicaoHistorico);
+					$scope.dados.posicaoHistorico = $scope.dados.posicaoHistorico - 1;
 					salvarSessao();
 				}
 			}
@@ -195,7 +198,7 @@
 				if (jogador) {
 					$scope.loading = true;
 					if ($scope.dados.time1.indexOf(jogador) >= 0 || $scope.dados.time2.indexOf(jogador) >= 0 || $scope.dados.aguardando.indexOf(jogador) >= 0) {
-						alert("O jogador já existe!");
+						$scope.usuarioExistente = true;
 						$scope.loading = false;
 						return false;
 					}
@@ -214,6 +217,7 @@
 						buscarListaFirebase(localStorage.lista);
 					}, 1000);
 					$scope.loading = false;
+					$scope.usuarioExistente = false;
 				}
 			}
 
@@ -262,6 +266,9 @@
 					$scope.dados.aguardando = $scope.dados.aguardando.slice(1, $scope.dados.aguardando.length);
 				}
 				salvarSessao()
+				setTimeout(function(){
+					buscarListaFirebase(localStorage.lista);
+				}, 1000);
 				$scope.loading = false;
 			}
 
@@ -565,7 +572,7 @@
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:20px"></span>
 						</td>
 						<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
-							<span class="glyphicon glyphicon-refresh"></span>
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh"></span>
 						</td>
 						<td ng-click="exibirModalExcluir(jogador, 'time1')" align="center">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
@@ -578,7 +585,7 @@
 			</div>
 			<div class="col-sm-5 col-lg-5">
 				<table id="table" class="table green">
-					<th colspan="3" width="81%">Time B</th>
+					<th colspan="4" width="81%">Time B</th>
 					<th onclick="$('#menuAuxiliar').modal('show');" ng-click="selecionarTime('time2')" class="text-center">
 						<span class="glyphicon glyphicon-cog"></span>
 					</th>
@@ -590,9 +597,9 @@
 						<td align="center" width="7%" ng-click="down(jogador)">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:20px"></span>
 						</td>
-						<!--td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
-							<span class="glyphicon glyphicon-refresh"></span>
-						</td-->
+						<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh"></span>
+						</td>
 						<td ng-click="exibirModalExcluir(jogador, 'time2')" align="center">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
 						</td>
@@ -609,22 +616,25 @@
 					<td align="center" width="7%" ng-click="down(jogador)">
 						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:20px"></span>
 					</td>
-					<!--td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
-						<span class="glyphicon glyphicon-refresh"></span>
-					</td-->
+					<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh"></span>
+					</td>
 					<td ng-click="exibirModalExcluir(jogador, 'aguardando')" align="center">
 						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
 					</td>
 				</tr>
 			</table>
 		</div>
-		<div class="col-sm-12 col-lg-12 margin-8" style="display:flex; align-items:center" ng-if="dados.quantidade > 0">
-			<input type="text" size="15" id="novoJogador" ng-model="novoJogador" placeholder="Adicionar Jogador" />
-			<button type="submit" ng-click="adicionar()" onclick="document.getElementById('novoJogador').focus();"
-				style="margin: 5px 0px 5px 5px">
-				<span class="icon-right glyphicon glyphicon-plus"
-					style="font-size:13px; margin: 1px 8px 6px 8px"></span>
-			</button>
+		<div class="col-sm-12 col-lg-12 margin-8" ng-if="dados.quantidade > 0">
+			<div style="display:flex; align-items:center">
+				<input type="text" size="15" id="novoJogador" ng-model="novoJogador" placeholder="Adicionar Jogador" />
+				<button type="submit" ng-click="adicionar()" onclick="document.getElementById('novoJogador').focus();"
+					style="margin: 5px 0px 5px 5px">
+					<span class="icon-right glyphicon glyphicon-plus"
+						style="font-size:13px; margin: 1px 8px 6px 8px"></span>
+				</button>
+			</div>
+			<p style="color: red;" ng-if="usuarioExistente">Jogador já cadastrado</p>
 		</div>
 		<!--Treta: {{jsonString}}-->
 	</div>
