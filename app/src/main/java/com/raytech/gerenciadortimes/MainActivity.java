@@ -5,22 +5,32 @@ import static android.content.ContentValues.TAG;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.CookieManager;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.viewpager.widget.ViewPager;
+import androidx.viewpager2.widget.ViewPager2;
+import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.tabs.TabLayout;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -39,59 +49,24 @@ public class MainActivity extends AppCompatActivity {
     private Date ultimaAtualizacao = new Date();
     FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+    ViewPager viewPager;
+    TabLayout tabLayout;
+    TabAccessAdapter tabAccessAdapter;
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         activity = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        //MobileAds.initialize(this,"ca-app-pub-2085155322175264/8059261149");
 
-        //mAdView = findViewById(R.id.adView);
-        //AdRequest adRequest = new AdRequest.Builder().build();
-        //mAdView.loadAd(adRequest);
 
-        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        webview = (WebView) findViewById(R.id.webView);
-        CookieManager.getInstance().setAcceptCookie(true);
-        CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true);
-        webview.setVerticalScrollBarEnabled(false);
-        webview.getSettings().setJavaScriptEnabled(true);
-        webview.setLayerType(webview.LAYER_TYPE_SOFTWARE, null);
-        webview.getSettings().setPluginState(WebSettings.PluginState.ON);
-        webview.getSettings().setAllowFileAccess(true);
-        webview.getSettings().setAllowFileAccessFromFileURLs(true);
-        webview.getSettings().setAllowUniversalAccessFromFileURLs(true);
-        webview.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
-        webview.getSettings().setLoadWithOverviewMode(true);
-        webview.getSettings().setUseWideViewPort(true);
-        webview.getSettings().setDomStorageEnabled(true);
-        webview.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
-        webview.clearCache(true);
-        webview.clearHistory();
-        webview.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-        webview.setScrollbarFadingEnabled(false);
-        webview.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
-        webview.addJavascriptInterface(new LoadMenu(activity), "android");
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            webview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        } else {
-            webview.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
+        viewPager = (ViewPager) findViewById(R.id.view_pager);
+        tabAccessAdapter = new TabAccessAdapter(getSupportFragmentManager(), this);
+        viewPager.setAdapter(tabAccessAdapter);
 
-        webview.loadUrl("file:///android_asset/html/index.html");
-
-        webview.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                long diff = new Date().getTime() - ultimaAtualizacao.getTime();
-                if(!lista.equals("") && TimeUnit.MILLISECONDS.toSeconds(diff) > 20) {
-                    carregarLista(lista);
-                    ultimaAtualizacao = new Date();
-                }
-                return false;
-            }
-        });
+        tabLayout = (TabLayout) findViewById(R.id.main_tabs);
+        tabLayout.setupWithViewPager(viewPager);
     }
 
     @Override
@@ -227,4 +202,22 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
     }
+
+    public void setWebview(WebView webview) {
+        this.webview = webview;
+    }
+
+    public String getLista() {
+        return lista;
+    }
+
+    public Date getUltimaAtualizacao() {
+        return ultimaAtualizacao;
+    }
+
+    public void setUltimaAtualizacao(Date ultimaAtualizacao) {
+        this.ultimaAtualizacao = ultimaAtualizacao;
+    }
 }
+
+
