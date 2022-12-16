@@ -50,6 +50,16 @@
 			color: white;
 		}
 
+		.btn-blue {
+			background-color: dodgerblue;
+			color: white;
+			border-radius: 4px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
+		}
+
 		.green tr {
 			background-color: rgb(28, 207, 82);
 			color: white;
@@ -58,6 +68,18 @@
 		.green th {
 			background-color: rgb(28, 207, 82);
 			color: white;
+		}
+
+		
+
+		.btn-green {
+			background-color: rgb(28, 207, 82);;
+			color: white;
+			border-radius: 4px;
+			text-align: center;
+			text-decoration: none;
+			display: inline-block;
+			font-size: 16px;
 		}
 
 		.margin-8 {
@@ -94,6 +116,9 @@
 			$scope.timeSelecionado = "";
 			$scope.naoEncontrado = false;
 			$scope.listaExistente = false;
+			$scope.placarTime1 = 0;
+			$scope.placarTime2 = 0;
+			$scope.resultados = []
 
 			this.$onInit = function() {
 				if(typeof localStorage.lista === 'undefined' || localStorage.lista == 'undefined' || !localStorage.lista){
@@ -118,8 +143,10 @@
 			}
 
 			function salvarSessao() {
+				$scope.dados.dtAtualizacao = new Date().getTime();
 				var dados = angular.copy($scope.dados);
 				dados.historico = [];
+
 				var json = JSON.stringify(dados);
 				if ($scope.dados.posicaoHistorico > 0) {
 					$scope.dados.historico = $scope.dados.historico.slice(0, $scope.dados.posicaoHistorico);
@@ -132,9 +159,10 @@
 				
 				localStorage.dados = JSON.stringify($scope.dados);
 				localStorage.lista = $scope.dados.nomeLista;
+				var stringResultados = JSON.stringify($scope.resultados);
 				
 				$scope.jsonString = localStorage.dados;
-				salvarFirebase($scope.dados.nomeLista, $scope.dados.id, localStorage.dados);
+				salvarFirebase($scope.dados.nomeLista, $scope.dados.id, localStorage.dados, stringResultados);
 			}
 
 			$scope.criarLista = function(lista){
@@ -172,8 +200,13 @@
 					$scope.dados.time2 = dados.time2;
 					$scope.dados.aguardando = dados.aguardando;
 					$scope.dados.quantidade = dados.quantidade;
+					$scope.dados.dtAtualizacao = dados.dtAtualizacao;
 					$scope.dados.historico = $scope.dados.historico.slice(0, $scope.dados.posicaoHistorico);
 					$scope.dados.posicaoHistorico = $scope.dados.posicaoHistorico - 1;
+					
+					if($scope.resultados.length > 0 && $scope.dados.dtAtualizacao < $scope.resultados[0].dtResultado){
+						$scope.resultados = $scope.resultados.slice(1);
+					}
 					salvarSessao();
 				}
 			}
@@ -217,9 +250,6 @@
 					this.novoJogador = "";
 					$scope.selecionarJogador(jogador);
 					salvarSessao();
-					setTimeout(function(){
-						buscarListaFirebase(localStorage.lista);
-					}, 1000);
 					$scope.loading = false;
 					$scope.usuarioExistente = false;
 				}
@@ -233,7 +263,7 @@
 				$scope.editarQuantidade = true;
 			}
 
-			$scope.concluirEditarQuantidade = function () {
+			$scope.concluirEditarQuantidade = function (rotacionar=false) {
 				$scope.loading = true;
 				var qtd = $scope.dados.quantidade;
 				var time = $scope.dados.time1.length <= $scope.dados.time2.length ? 'time1' : 'time2';
@@ -245,18 +275,20 @@
 				if (qtdTime > qtd) {
 					$scope.dados.aguardando.unshift($scope.dados[time][qtdTime - 1]);
 					$scope.dados[time] = $scope.dados[time].slice(0, qtdTime - 1);
-					$scope.concluirEditarQuantidade();
+					$scope.concluirEditarQuantidade(rotacionar);
 					return true;
 				}
 
 				if (qtdTime < qtd && $scope.dados.aguardando.length > 0) {
 					$scope.dados[time].push($scope.dados.aguardando[0]);
 					$scope.dados.aguardando = $scope.dados.aguardando.slice(1, $scope.dados.aguardando.length);
-					$scope.concluirEditarQuantidade();
+					$scope.concluirEditarQuantidade(rotacionar);
 					return true;
 				}
 				$scope.editarQuantidade = false;
-				salvarSessao()
+				if(!rotacionar){
+					salvarSessao()
+				}
 				$scope.loading = false;
 			}
 
@@ -269,10 +301,7 @@
 					$scope.dados[lista].push($scope.dados.aguardando[0]);
 					$scope.dados.aguardando = $scope.dados.aguardando.slice(1, $scope.dados.aguardando.length);
 				}
-				salvarSessao()
-				setTimeout(function(){
-					buscarListaFirebase(localStorage.lista);
-				}, 1000);
+				salvarSessao();
 				$scope.loading = false;
 			}
 
@@ -310,20 +339,21 @@
 			}
 
 			$scope.rotacionarFila = function (fila) {
-				/*if (fila == 'inicio') {
-					var lista = [];
-					lista.push(...$scope.dados[$scope.timeSelecionado]);
-					$scope.dados[$scope.timeSelecionado] = [];
-					$scope.concluirEditarQuantidade();
-					lista.push(...$scope.dados.aguardando);
-					$scope.dados.aguardando = lista;
-				} else {*/
-					$scope.dados.aguardando.push(...$scope.dados[$scope.timeSelecionado]);
-					$scope.dados[$scope.timeSelecionado] = [];
-					$scope.concluirEditarQuantidade();
-					//$('#modalMensagemSubirLista').modal('show');
-					escalarProximoTime();
-				//}
+				$scope.resultados.push({
+					'time1': $scope.dados.time1,
+					'time2': $scope.dados.time2,
+					'dtResultado': new Date().getTime(),
+					'placarTime1': $scope.placarTime1,
+					'placarTime2': $scope.placarTime2
+				});
+				$scope.dados.aguardando.push(...$scope.dados[$scope.timeSelecionado]);
+				$scope.dados[$scope.timeSelecionado] = [];
+				$scope.concluirEditarQuantidade(true);
+				//$('#modalMensagemSubirLista').modal('show');
+				//escalarProximoTime();
+				
+				$scope.placarTime1 = 0;
+				$scope.placarTime2 = 0;
 				salvarSessao();
 			}
 
@@ -416,7 +446,7 @@
 				$scope.selecionarJogador(jogador);
 			}
 
-			$scope.carregarLista = function(json){
+			$scope.carregarLista = function(json, resultados){
 				if(json){
 					if(localStorage.dados != JSON.stringify(json)){
 						$scope.dados = json;
@@ -424,6 +454,7 @@
 						$scope.jsonString = localStorage.dados;
 					}
 					$scope.naoEncontrado = false;
+					$scope.resultados = resultados;
 					localStorage.lista = json.nomeLista;
 					$('#modalAbrirLista').modal('hide');
 				}else{
@@ -437,6 +468,14 @@
 				$scope.dados[$scope.timeSelecionado].push(...$scope.dados.aguardando.slice(totalTime, $scope.dados.quantidade));
 				$scope.dados.aguardando.splice(0, $scope.dados.quantidade-totalTime);
 				salvarSessao();
+			}
+
+			$scope.aumentarPlacar = function(placarTime){
+				$scope[placarTime] = $scope[placarTime] ? $scope[placarTime]+1 : 1;
+			}
+
+			$scope.diminuirPlacar = function(placarTime){
+				$scope[placarTime] = $scope[placarTime] ? $scope[placarTime]-1 : 0;
 			}
 		});
 
@@ -467,9 +506,9 @@
 			})
 		}
 
-		function salvarFirebase(lista, id, json){
+		function salvarFirebase(lista, id, json, resultados){
 			if(typeof android !== 'undefined'){
-				android.salvar(lista, id, json)
+				android.salvar(lista, id, json, resultados)
 			}
 		}
 
@@ -488,10 +527,10 @@
 			}
 		}
 		
-		function carregarLista(json){
+		function carregarLista(json, resultados){
 			var scope = angular.element(document.getElementById('appCtrl')).scope();
 			scope.$apply(function () {
-				scope.carregarLista(json);
+				scope.carregarLista(json, resultados);
 			})
 		}
 
@@ -571,13 +610,13 @@
 					<tr ng-repeat="jogador in dados.time1" style="{{corTabela(jogador, 'rgb(10, 99, 187)', 'dodgerblue')}}">
 						<td width="70%" ng-click="selecionarJogador(jogador)">{{jogador}}</td>
 						<td align="center" width="7%" ng-click="up(jogador)">
-							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:20px"></span>
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:10px"></span>
 						</td>
 						<td align="center" width="7%" ng-click="down(jogador)">
-							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:20px"></span>
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:10px"></span>
 						</td>
-						<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
-							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh"></span>
+						<td align="center" width="7%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh" style="margin-right:10px"></span>
 						</td>
 						<td ng-click="exibirModalExcluir(jogador, 'time1')" align="center">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
@@ -585,8 +624,32 @@
 					</tr>
 				</table>
 			</div>
-			<div class="col-sm-1 col-lg-1" align="center">
-				<h1>X</h1>
+			<div class="col-sm-12 col-md-12 col-lg-12" align="center" style="line-height:1.1; margin-bottom:108px">
+				<div style="width:20%; float:left;">
+					<button type="submit" style="margin:9px" class="btn-blue" ng-click="aumentarPlacar('placarTime1')">
+						<span class="icon-right glyphicon glyphicon-plus"
+							style="font-size:13px; margin: 1px 8px 6px 8px"></span>
+					</button><br>
+					<button type="submit" style="margin:9px" class="btn-blue" ng-click="diminuirPlacar('placarTime1')">
+						<span class="icon-right glyphicon glyphicon-minus"
+							style="font-size:13px; margin: 1px 8px 6px 8px"></span>
+					</button>
+				</div>
+				<div style="width:60%;float:left;margin-top:15px">
+					<span style="font-size:52px;margin-right:4px;">{{placarTime1 ? placarTime1 : 0}}</span>
+					<span style="font-size:35px">x</span>
+					<span style="font-size:52px;margin-left:4px;">{{placarTime2 ? placarTime2 : 0}}</span>
+				</div>
+				<div style="width:20%; float:right;">
+					<button type="submit" style="margin:9px" class="btn-green" ng-click="aumentarPlacar('placarTime2')">
+						<span class="icon-right glyphicon glyphicon-plus"
+							  style="font-size:13px; margin: 1px 8px 6px 8px"></span>
+					</button><br>
+					<button type="submit" style="margin:9px" class="btn-green" ng-click="diminuirPlacar('placarTime2')">
+						<span class="icon-right glyphicon glyphicon-minus"
+							  style="font-size:13px; margin: 1px 8px 6px 8px"></span>
+					</button>
+				</div>
 			</div>
 			<div class="col-sm-5 col-lg-5">
 				<table id="table" class="table green">
@@ -597,13 +660,13 @@
 					<tr ng-repeat="jogador in dados.time2" style="{{corTabela(jogador, 'rgb(9, 156, 53)', 'rgb(28, 207, 82)')}}">
 						<td width="70%" ng-click="selecionarJogador(jogador)">{{jogador}}</td>
 						<td align="center" width="7%" ng-click="up(jogador)">
-							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:20px"></span>
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:10px"></span>
 						</td>
 						<td align="center" width="7%" ng-click="down(jogador)">
-							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:20px"></span>
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:10px"></span>
 						</td>
-						<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
-							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh"></span>
+						<td align="center" width="7%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh" style="margin-right:10px"></span>
 						</td>
 						<td ng-click="exibirModalExcluir(jogador, 'time2')" align="center">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
@@ -616,13 +679,13 @@
 				<tr ng-repeat="jogador in dados.aguardando" style="{{corTabela(jogador, '#ADA9A9', '#EFECEC')}}">
 					<td width="81%" ng-click="selecionarJogador(jogador)">{{jogador}}</td>
 					<td align="center" width="7%" ng-click="up(jogador)">
-						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:20px"></span>
+						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:10px"></span>
 					</td>
 					<td align="center" width="7%" ng-click="down(jogador)">
-						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:20px"></span>
+						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:10px"></span>
 					</td>
 					<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
-						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh"></span>
+						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh" style="margin-right:10px"></span>
 					</td>
 					<td ng-click="exibirModalExcluir(jogador, 'aguardando')" align="center">
 						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
@@ -631,6 +694,7 @@
 			</table>
 		</div>
 		<div class="col-sm-12 col-lg-12 margin-8" ng-if="dados.quantidade > 0">
+			<p style="color: red;" ng-if="usuarioExistente">Jogador já cadastrado</p>
 			<div style="display:flex; align-items:center">
 				<input type="text" size="15" id="novoJogador" ng-model="novoJogador" placeholder="Adicionar Jogador" />
 				<button type="submit" ng-click="adicionar()" onclick="document.getElementById('novoJogador').focus();"
@@ -639,7 +703,6 @@
 						style="font-size:13px; margin: 1px 8px 6px 8px"></span>
 				</button>
 			</div>
-			<p style="color: red;" ng-if="usuarioExistente">Jogador já cadastrado</p>
 		</div>
 		<!--Treta: {{jsonString}}-->
 	</div>

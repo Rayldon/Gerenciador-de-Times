@@ -5,26 +5,14 @@ import static android.content.ContentValues.TAG;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.webkit.CookieManager;
-import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
 import androidx.viewpager.widget.ViewPager;
-import androidx.viewpager2.widget.ViewPager2;
-import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -39,10 +27,10 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     private WebView webview;
+    private WebView webviewResultado;
     private MainActivity activity;
     public String url = "";
     private String lista = "";
@@ -129,22 +117,32 @@ public class MainActivity extends AppCompatActivity {
                         if (task.getResult() != null && !task.getResult().isEmpty()) {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 String json = document.get("json").toString();
-                                webview.loadUrl("javascript:carregarLista("+json+")");
+                                String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
+                                webview.loadUrl("javascript:carregarLista("+json+", "+resultado+")");
+                                webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
                                 break;
                             }
                         } else {
-                            webview.loadUrl("javascript:carregarLista('')");
+                            webview.loadUrl("javascript:carregarLista('', '')");
                         }
                     }
                 }
             });
     }
 
-    public void salvar(String lista, String id, String json){
+    public void salvar(String lista, String id, String json, String resultados){
         lista = lista.trim().toUpperCase();
         Map<String, Object> registro = new HashMap<>();
         registro.put("lista", lista);
         registro.put("json", json);
+        registro.put("resultados", resultados);
+        registro.put("data_atualizacao", new Date());
+        webviewResultado.post(new Runnable() {
+            @Override
+            public void run() {
+                webviewResultado.loadUrl("javascript:carregarResultado("+resultados+")");
+            }
+        });
 
         if(id == null) {
             db.collection("listas").whereEqualTo("lista", lista).get()
@@ -205,6 +203,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void setWebview(WebView webview) {
         this.webview = webview;
+    }
+
+    public void setWebviewResultado(WebView webviewResultado) {
+        this.webviewResultado = webviewResultado;
     }
 
     public String getLista() {

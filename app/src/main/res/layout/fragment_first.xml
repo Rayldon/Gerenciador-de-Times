@@ -5,9 +5,15 @@
     android:layout_height="match_parent"
     tools:context=".First">
 
-    <WebView  xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/webView"
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        tools:layout_behavior="@string/appbar_scrolling_view_behavior">
 
+        <WebView  xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/webView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 </RelativeLayout>

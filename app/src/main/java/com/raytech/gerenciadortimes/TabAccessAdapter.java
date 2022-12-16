@@ -23,7 +23,7 @@ public class TabAccessAdapter extends FragmentPagerAdapter {
                 First first = new First(this.activity);
                 return first;
             case 1 :
-                Second second = new Second();
+                Second second = new Second(this.activity);
                 return second;
             default:
                 return null;

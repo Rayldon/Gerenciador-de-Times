@@ -21,8 +21,8 @@ public class LoadMenu {
   }
 
   @JavascriptInterface
-  public void salvar(String lista, String id, String json){
-    main.salvar(lista, id, json);
+  public void salvar(String lista, String id, String json, String resultados){
+    main.salvar(lista, id, json, resultados);
   }
 
   @JavascriptInterface

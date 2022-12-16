@@ -2,6 +2,7 @@ package com.raytech.gerenciadortimes;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -11,12 +12,14 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 
 import androidx.fragment.app.Fragment;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 public class First extends Fragment {
     private WebView webview;
+    private SwipeRefreshLayout swipeRefreshLayout;
     private MainActivity activity;
 
     public First(){
@@ -61,17 +64,27 @@ public class First extends Fragment {
 
         webview.loadUrl("file:///android_asset/html/index.html");
 
-        webview.setOnTouchListener(new View.OnTouchListener() {
+        swipeRefreshLayout = v.findViewById(R.id.swipe);
+        swipeRefreshLayout.setProgressViewOffset(false, 0,180);
+
+        swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
-            public boolean onTouch(View view, MotionEvent event) {
-                long diff = new Date().getTime() - activity.getUltimaAtualizacao().getTime();
-                if(!activity.getLista().equals("") && TimeUnit.MILLISECONDS.toSeconds(diff) > 20) {
-                    activity.carregarLista(activity.getLista());
-                    activity.setUltimaAtualizacao(new Date());
-                }
-                return false;
+            public void onRefresh() {
+                swipeRefreshLayout.setRefreshing(true);
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        swipeRefreshLayout.setRefreshing(false);
+                        webview.loadUrl("file:///android_asset/html/index.html");
+                    }
+                },  2000);
             }
         });
+
+        swipeRefreshLayout.setColorSchemeColors(
+                getResources().getColor(android.R.color.holo_blue_dark),
+                getResources().getColor(android.R.color.holo_green_dark)
+        );
 
         return v;
     }
