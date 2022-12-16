@@ -106,6 +106,10 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    public void carregarLista(){
+        carregarLista(lista);
+    }
+
     public void carregarLista(String lista){
         lista = lista.trim().toUpperCase();
         this.lista = lista;

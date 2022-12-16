@@ -43,6 +43,18 @@
 			text-align: center;
 			width: 50%
 		}
+
+		.div-data {
+			border:1px solid black;
+			border-radius: 4px;
+			margin: 2px 2px 15px 2px;
+		}
+
+		.div-titulo {
+			margin:15px;
+			font-weight: bold;
+			font-size: 17px;
+		}
 	</style>
 
 	<script src="angular.min.js"></script>
@@ -50,9 +62,11 @@
 		var app = angular.module("app", [])
 		app.controller("appCtrl", function ($scope) {
 			$scope.resultados = [];
+			$scope.datas = [];
 
 			$scope.carregarResultados = function(resultados){
 				$scope.resultados = [];
+				$scope.datas = [];
 
 				for(var y=0;y<resultados.length;y++) {
 					resultados[y].times = [];
@@ -63,9 +77,16 @@
 							'jogadorTime2': resultados[y].time2[x]
 						})
 					}
+					
+					var data = $scope.formatDate(resultados[y].dtResultado);
+					if(!$scope.datas.some(d => d.data == data)){
+						$scope.datas.push({'data': data, 'exibir': false});
+					}
 					$scope.resultados.push(resultados[y]);
-					$scope.resultados.sort((a,b)=>b.dtResultado-a.dtResultado);
 				}
+				$scope.resultados.sort((a,b)=>b.dtResultado-a.dtResultado);
+				$scope.datas.sort((a,b)=>b.data-a.data);
+
 			}
 
 			$scope.formatDate = function(data) {
@@ -74,7 +95,26 @@
 				var minutes = date.getMinutes();
 				minutes = minutes < 10 ? '0'+minutes : minutes;
 				var strTime = hours + ':' + minutes;
-				return date.getDate() + "/" + (date.getMonth()+1) + "/" + date.getFullYear() + "  " + strTime;
+				var dia = date.getDate() < 10 ? '0'+date.getDate() : date.getDate();
+				var mes = (date.getMonth()+1) < 10 ? '0'+(date.getMonth()+1) : (date.getMonth()+1);
+				return dia + "/" + mes + "/" + date.getFullYear();
+			}
+
+			$scope.formatHorario = function(data) {
+				var date = new Date(data);
+				var hours = date.getHours();
+				var minutes = date.getMinutes();
+				minutes = minutes < 10 ? '0'+minutes : minutes;
+				var strTime = hours + ':' + minutes;
+				return strTime;
+			}
+
+			$scope.dateEquals = function(data1, data2){
+				return data1 == data2;
+			}
+
+			$scope.exibirResultado = function(data){
+				data.exibir = !data.exibir;
 			}
 		});
 
@@ -89,27 +129,34 @@
 
 <body id="appCtrl" ng-app="app" ng-controller="appCtrl">
 	<br /><br /><br />
-
-	<div class="col-sm-12 col-lg-12" ng-repeat="resultado in resultados">
-		<br />
-		<b>Data do jogo: {{formatDate(resultado.dtResultado)}}</b>
-		<table id="table" class="table">
-			<th class="blue">Time A</th>
-			<th class="green">Time B</th>
-			<tr>
-				<td colspan="2" class="grey">
-					<div>
-						<span style="font-size:25px;margin-right:35px;">{{resultado.placarTime1}}</span>
-						<span style="font-size:25px">x</span>
-						<span style="font-size:25px;margin-left:35px;">{{resultado.placarTime2}}</span>
-					</div>
-				</td>
-			</tr>
-			<tr ng-repeat="time in resultado.times">
-				<td class="blue">{{time.jogadorTime1}}</td>
-				<td class="green">{{time.jogadorTime2}}</td>
-			</tr>
-		</table>
+	<div class="col-sm-12 col-lg-12 div-data" ng-repeat="data in datas" ng-click="exibirResultado(data)">
+		<div class="div-titulo">
+			{{data.data}}
+			<span class="glyphicon glyphicon-chevron-down" style="float:right"></span>
+		</div>
+		<div ng-if="data.exibir">
+			<div class="col-sm-12 col-lg-12" ng-repeat="resultado in resultados" ng-if="dateEquals(data.data, formatDate(resultado.dtResultado))">
+				<br />
+				<b>Horário: {{formatHorario(resultado.dtResultado)}}</b>
+				<table id="table" class="table">
+					<th class="blue">Time A</th>
+					<th class="green">Time B</th>
+					<tr>
+						<td colspan="2" class="grey">
+							<div>
+								<span style="font-size:25px;margin-right:35px;">{{resultado.placarTime1}}</span>
+								<span style="font-size:25px">x</span>
+								<span style="font-size:25px;margin-left:35px;">{{resultado.placarTime2}}</span>
+							</div>
+						</td>
+					</tr>
+					<tr ng-repeat="time in resultado.times">
+						<td class="blue">{{time.jogadorTime1}}</td>
+						<td class="green">{{time.jogadorTime2}}</td>
+					</tr>
+				</table>
+			</div>
+		</div>
 	</div>
 </body>
 

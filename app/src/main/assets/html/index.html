@@ -338,14 +338,16 @@
 				$scope.timeSelecionado = time;
 			}
 
-			$scope.rotacionarFila = function (fila) {
-				$scope.resultados.push({
-					'time1': $scope.dados.time1,
-					'time2': $scope.dados.time2,
-					'dtResultado': new Date().getTime(),
-					'placarTime1': $scope.placarTime1,
-					'placarTime2': $scope.placarTime2
-				});
+			$scope.rotacionarFila = function (fila, incluirResultado=false) {
+				if(incluirResultado){
+					$scope.resultados.push({
+						'time1': $scope.dados.time1,
+						'time2': $scope.dados.time2,
+						'dtResultado': new Date().getTime(),
+						'placarTime1': $scope.placarTime1,
+						'placarTime2': $scope.placarTime2
+					});
+				}
 				$scope.dados.aguardando.push(...$scope.dados[$scope.timeSelecionado]);
 				$scope.dados[$scope.timeSelecionado] = [];
 				$scope.concluirEditarQuantidade(true);
@@ -712,7 +714,7 @@
 			<div class="modal-content">
 				<div class="modal-body">
 					<p><b>Selecione uma opção:</b></p>
-					<p style="margin:20px 0px 38px 0px" ng-if="dados[timeSelecionado].length > 0" ng-click="rotacionarFila('fim')" onclick="$('#menuAuxiliar').modal('hide');">
+					<p style="margin:20px 0px 38px 0px" ng-if="dados[timeSelecionado].length > 0" onclick="$('#menuAuxiliar').modal('hide');$('#modalIncluirResultado').modal('show');">
 						Substituir o <b>{{timeSelecionado == 'time1' ? 'Time A' : 'Time B'}}</b> pelo próximo time da fila de espera
 					</p>
 					<!--p style="margin:20px 0px 38px 0px" ng-click="rotacionarFila('inicio')" onclick="$('#menuAuxiliar').modal('hide');">
@@ -844,6 +846,27 @@
 						Sim
 					</button>
 					<button type="submit" onclick="$('#modalMensagemSubirLista').modal('hide');"
+						style="margin: 5px 0px 5px 5px; width:80px">
+						Não
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal -->
+	<div id="modalIncluirResultado" class="modal fade" role="dialog">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-body" style="min-height:150px" align="center">
+					<p style="margin:10px 0px 28px 0px">
+						Deseja registrar o resultado da última partida?
+					</p>
+					<button type="submit" ng-click="rotacionarFila('fim', true)" onclick="$('#modalIncluirResultado').modal('hide');"
+						style="margin: 5px 0px 5px 5px; width:80px">
+						Sim
+					</button>
+					<button type="submit" ng-click="rotacionarFila('fim', false)" onclick="$('#modalIncluirResultado').modal('hide');"
 						style="margin: 5px 0px 5px 5px; width:80px">
 						Não
 					</button>

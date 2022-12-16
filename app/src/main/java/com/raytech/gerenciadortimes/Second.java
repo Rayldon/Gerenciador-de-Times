@@ -75,7 +75,7 @@ public class Second extends Fragment {
                     @Override
                     public void run() {
                         swipeRefreshLayout.setRefreshing(false);
-                        webview.loadUrl("file:///android_asset/html/resultado.html");
+                        activity.carregarLista();
                     }
                 },  2000);
             }
