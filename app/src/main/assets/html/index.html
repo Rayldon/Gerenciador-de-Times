@@ -204,6 +204,7 @@
 					$scope.dados.historico = $scope.dados.historico.slice(0, $scope.dados.posicaoHistorico);
 					$scope.dados.posicaoHistorico = $scope.dados.posicaoHistorico - 1;
 					
+					$scope.resultados.sort((a,b)=>b.dtResultado-a.dtResultado);
 					if($scope.resultados.length > 0 && $scope.dados.dtAtualizacao < $scope.resultados[0].dtResultado){
 						$scope.resultados = $scope.resultados.slice(1);
 					}
