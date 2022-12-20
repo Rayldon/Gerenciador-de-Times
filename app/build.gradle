@@ -7,8 +7,8 @@ android {
 
     defaultConfig {
         applicationId "com.raytech.gerenciadortimes"
-        minSdk 31
-        targetSdk 31
+        minSdk 28
+        targetSdk 28
         versionCode 9
         versionName "9.0"
 
