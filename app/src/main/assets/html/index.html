@@ -118,7 +118,8 @@
 			$scope.listaExistente = false;
 			$scope.placarTime1 = 0;
 			$scope.placarTime2 = 0;
-			$scope.resultados = []
+			$scope.resultados = [];
+			$scope.dataAtualizacao = null;
 
 			this.$onInit = function() {
 				if(typeof localStorage.lista === 'undefined' || localStorage.lista == 'undefined' || !localStorage.lista){
@@ -162,7 +163,7 @@
 				var stringResultados = JSON.stringify($scope.resultados);
 				
 				$scope.jsonString = localStorage.dados;
-				salvarFirebase($scope.dados.nomeLista, $scope.dados.id, localStorage.dados, stringResultados);
+				salvarFirebase($scope.dados.nomeLista, $scope.dados.id, localStorage.dados, stringResultados, $scope.dataAtualizacao);
 			}
 
 			$scope.criarLista = function(lista){
@@ -449,7 +450,7 @@
 				$scope.selecionarJogador(jogador);
 			}
 
-			$scope.carregarLista = function(json, resultados){
+			$scope.carregarLista = function(json, resultados, dataAtualizacao){
 				if(json){
 					if(localStorage.dados != JSON.stringify(json)){
 						$scope.dados = json;
@@ -458,6 +459,7 @@
 					}
 					$scope.naoEncontrado = false;
 					$scope.resultados = resultados;
+					$scope.dataAtualizacao = dataAtualizacao;
 					localStorage.lista = json.nomeLista;
 					$('#modalAbrirLista').modal('hide');
 				}else{
@@ -509,9 +511,9 @@
 			})
 		}
 
-		function salvarFirebase(lista, id, json, resultados){
+		function salvarFirebase(lista, id, json, resultados, dataAtualizacao){
 			if(typeof android !== 'undefined'){
-				android.salvar(lista, id, json, resultados)
+				android.salvar(lista, id, json, resultados, dataAtualizacao)
 			}
 		}
 
@@ -530,10 +532,10 @@
 			}
 		}
 		
-		function carregarLista(json, resultados){
+		function carregarLista(json, resultados, dataAtualizacao){
 			var scope = angular.element(document.getElementById('appCtrl')).scope();
 			scope.$apply(function () {
-				scope.carregarLista(json, resultados);
+				scope.carregarLista(json, resultados, dataAtualizacao);
 			})
 		}
 

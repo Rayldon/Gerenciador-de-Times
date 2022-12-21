@@ -122,7 +122,9 @@ public class MainActivity extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 String json = document.get("json").toString();
                                 String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
-                                webview.loadUrl("javascript:carregarLista("+json+", "+resultado+")");
+                                String data = document.get("data_atualizacao").toString();
+
+                                webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
                                 webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
                                 break;
                             }
@@ -134,8 +136,7 @@ public class MainActivity extends AppCompatActivity {
             });
     }
 
-    public void salvar(String lista, String id, String json, String resultados){
-        lista = lista.trim().toUpperCase();
+    public void salvar(final String lista, String id, String json, String resultados, String dataAtualizacao){
         Map<String, Object> registro = new HashMap<>();
         registro.put("lista", lista);
         registro.put("json", json);
@@ -148,7 +149,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(id == null) {
+        //if(id == null) {
             db.collection("listas").whereEqualTo("lista", lista).get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
@@ -156,7 +157,16 @@ public class MainActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 if (task.getResult() != null && !task.getResult().isEmpty()) {
                                     for (QueryDocumentSnapshot document : task.getResult()) {
-                                        update(document.getId(), registro);
+                                        if(document.get("data_atualizacao").toString().equals(dataAtualizacao)){
+                                            update(document.getId(), registro);
+                                        }else {
+                                            String json = document.get("json").toString();
+                                            String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
+                                            String data = document.get("data_atualizacao").toString();
+
+                                            webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
+                                            webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
+                                        }
                                         break;
                                     }
                                 } else {
@@ -167,9 +177,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
-        }else{
-            update(id, registro);
-        }
+        //}else{
+            //update(id, registro);
+        //}
     }
 
     private void insert(Map<String, Object> registro){
