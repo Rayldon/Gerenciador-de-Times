@@ -8,9 +8,9 @@ android {
     defaultConfig {
         applicationId "com.raytech.gerenciadortimes"
         minSdk 28
-        targetSdk 28
-        versionCode 9
-        versionName "9.0"
+        targetSdk 31
+        versionCode 10
+        versionName "9.0.1"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
