@@ -19,6 +19,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.tabs.TabLayout;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -122,7 +123,8 @@ public class MainActivity extends AppCompatActivity {
                             for (QueryDocumentSnapshot document : task.getResult()) {
                                 String json = document.get("json").toString();
                                 String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
-                                String data = document.get("data_atualizacao").toString();
+                                Timestamp timestamp = (Timestamp) document.get("data_atualizacao");
+                                String data = timestamp.toDate().toString();
 
                                 webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
                                 webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
@@ -149,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(id == null) {
+        //if(id == null) {
             db.collection("listas").whereEqualTo("lista", lista).get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
@@ -157,16 +159,17 @@ public class MainActivity extends AppCompatActivity {
                             if (task.isSuccessful()) {
                                 if (task.getResult() != null && !task.getResult().isEmpty()) {
                                     for (QueryDocumentSnapshot document : task.getResult()) {
-                                        //if(document.get("data_atualizacao").toString().equals(dataAtualizacao)){
+                                        Timestamp timestamp = (Timestamp) document.get("data_atualizacao");
+                                        String data = timestamp.toDate().toString();
+
+                                        if(data.equals(dataAtualizacao)){
                                             update(document.getId(), registro);
-                                        /*}else {
+                                        }else {
                                             String json = document.get("json").toString();
                                             String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
-                                            String data = document.get("data_atualizacao").toString();
-
                                             webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
                                             webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
-                                        }*/
+                                        }
                                         break;
                                     }
                                 } else {
@@ -177,9 +180,9 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                     });
-        }else{
-            update(id, registro);
-        }
+        //}else{
+            //update(id, registro);
+        //}
     }
 
     private void insert(Map<String, Object> registro){
@@ -188,7 +191,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(DocumentReference documentReference) {
                     Log.d(TAG, "Executado com sucesso: " + documentReference.getId());
-                    webview.loadUrl("javascript:salvarId('"+documentReference.getId()+"')");
+                    String data = registro.get("data_atualizacao").toString();
+                    webview.loadUrl("javascript:salvarId('"+documentReference.getId()+"','"+data+"')");
                 }
             })
             .addOnFailureListener(new OnFailureListener() {
@@ -205,6 +209,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onSuccess(Object o) {
                     Log.d(TAG, "Executado com sucesso");
+                    String data = registro.get("data_atualizacao").toString();
+                    webview.loadUrl("javascript:salvarId('"+id+"','"+data+"')");
                 }
             })
             .addOnFailureListener(new OnFailureListener() {

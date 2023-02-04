@@ -116,8 +116,8 @@
 			$scope.timeSelecionado = "";
 			$scope.naoEncontrado = false;
 			$scope.listaExistente = false;
-			$scope.placarTime1 = 0;
-			$scope.placarTime2 = 0;
+			$scope.placarTime1 = localStorage.placarTime1 ? localStorage.placarTime1 : 0;
+			$scope.placarTime2 = localStorage.placarTime2 ? localStorage.placarTime2 : 0;
 			$scope.resultados = [];
 			$scope.dataAtualizacao = null;
 
@@ -144,6 +144,8 @@
 			}
 
 			function salvarSessao() {
+				$scope.proximas=$scope.dividirLista($scope.dados.aguardando);
+
 				$scope.dados.dtAtualizacao = new Date().getTime();
 				var dados = angular.copy($scope.dados);
 				dados.historico = [];
@@ -358,6 +360,8 @@
 				
 				$scope.placarTime1 = 0;
 				$scope.placarTime2 = 0;
+				localStorage.placarTime1 = 0;
+				localStorage.placarTime2 = 0;
 				salvarSessao();
 			}
 
@@ -456,6 +460,7 @@
 						$scope.dados = json;
 						localStorage.dados = JSON.stringify(json);
 						$scope.jsonString = localStorage.dados;
+						$scope.proximas = $scope.dividirLista($scope.dados.aguardando);
 					}
 					$scope.naoEncontrado = false;
 					$scope.resultados = resultados;
@@ -477,11 +482,28 @@
 
 			$scope.aumentarPlacar = function(placarTime){
 				$scope[placarTime] = $scope[placarTime] ? $scope[placarTime]+1 : 1;
+				localStorage[placarTime] = $scope[placarTime];
 			}
 
 			$scope.diminuirPlacar = function(placarTime){
 				$scope[placarTime] = $scope[placarTime] ? $scope[placarTime]-1 : 0;
+				localStorage[placarTime] = $scope[placarTime];
 			}
+
+			$scope.dividirLista = function(lista, i){
+				const result = lista.reduce((resultArray, item, index) => {
+				  const chunkIndex = Math.floor(index/$scope.dados.quantidade)
+
+				  if(!resultArray[chunkIndex]) {
+					resultArray[chunkIndex] = [] // start a new chunk
+				  }
+				  resultArray[chunkIndex].push(item)
+				  return resultArray
+				}, []);
+				return result;
+			}
+			$scope.proximas = $scope.dividirLista($scope.dados.aguardando);
+			//$scope.$apply();
 		});
 
 		function limpar() {
@@ -575,10 +597,11 @@
 			$('#modalCriarLista').modal('show');
 		}
 
-		function salvarId(id){
+		function salvarId(id, data){
 			var scope = angular.element(document.getElementById('appCtrl')).scope();
 			scope.$apply(function () {
 				scope.dados.id = id;
+				scope.dataAtualizacao = data;
 			})
 		}
 	</script>
@@ -607,10 +630,15 @@
 		</div>
 		<div class="col-sm-12 col-lg-12">
 			<div class="col-sm-5 col-lg-5">
+				<!--div style="float:right;">
+					<button type="submit" style="margin-bottom:9px" class="btn-blue" ng-click="selecionarTime('time1')" onclick="$('#modalIncluirResultado').modal('show');">
+						Substituir Time A
+					</button>
+				</div-->
 				<table id="table" class="table blue">
 					<th colspan="4" width="81%">Time A</th>
-					<th onclick="$('#menuAuxiliar').modal('show');" ng-click="selecionarTime('time1')" class="text-center">
-						<span class="glyphicon glyphicon-cog"></span>
+					<th onclick="$('#modalIncluirResultado').modal('show');" ng-click="selecionarTime('time1')" class="text-center">
+						<span class="glyphicon glyphicon-refresh"></span>
 					</th>
 					<tr ng-repeat="jogador in dados.time1" style="{{corTabela(jogador, 'rgb(10, 99, 187)', 'dodgerblue')}}">
 						<td width="70%" ng-click="selecionarJogador(jogador)">{{jogador}}</td>
@@ -657,10 +685,15 @@
 				</div>
 			</div>
 			<div class="col-sm-5 col-lg-5">
+				<!--div style="float:right;">
+					<button type="submit" style="margin-bottom:9px" class="btn-green" ng-click="selecionarTime('time2')" onclick="$('#modalIncluirResultado').modal('show');">
+						Substituir Time B
+					</button>
+				</div-->
 				<table id="table" class="table green">
 					<th colspan="4" width="81%">Time B</th>
-					<th onclick="$('#menuAuxiliar').modal('show');" ng-click="selecionarTime('time2')" class="text-center">
-						<span class="glyphicon glyphicon-cog"></span>
+					<th onclick="$('#modalIncluirResultado').modal('show');" ng-click="selecionarTime('time2')" class="text-center">
+						<span class="glyphicon glyphicon-refresh"></span>
 					</th>
 					<tr ng-repeat="jogador in dados.time2" style="{{corTabela(jogador, 'rgb(9, 156, 53)', 'rgb(28, 207, 82)')}}">
 						<td width="70%" ng-click="selecionarJogador(jogador)">{{jogador}}</td>
@@ -679,24 +712,28 @@
 					</tr>
 				</table>
 			</div>
-			<table id="table" class="table" ng-if="dados.aguardando.length > 0">
-				<th colspan="3" width="100%">Fila de Espera</th>
-				<tr ng-repeat="jogador in dados.aguardando" style="{{corTabela(jogador, '#ADA9A9', '#EFECEC')}}">
-					<td width="81%" ng-click="selecionarJogador(jogador)">{{jogador}}</td>
-					<td align="center" width="7%" ng-click="up(jogador)">
-						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:10px"></span>
-					</td>
-					<td align="center" width="7%" ng-click="down(jogador)">
-						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:10px"></span>
-					</td>
-					<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
-						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh" style="margin-right:10px"></span>
-					</td>
-					<td ng-click="exibirModalExcluir(jogador, 'aguardando')" align="center">
-						<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
-					</td>
-				</tr>
-			</table>
+			<div id="divProxima" ng-if="dados.aguardando.length > 0">
+				<div ng-repeat="proxima in proximas">
+					<table id="table" class="table">
+						<th colspan="3" width="100%">{{$index+1}}º Próxima</th>
+						<tr ng-repeat="jogador in proxima" style="{{corTabela(jogador, '#ADA9A9', '#EFECEC')}}">
+							<td width="81%" ng-click="selecionarJogador(jogador)">{{jogador}}</td>
+							<td align="center" width="7%" ng-click="up(jogador)">
+								<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-up" style="margin-right:10px"></span>
+							</td>
+							<td align="center" width="7%" ng-click="down(jogador)">
+								<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:10px"></span>
+							</td>
+							<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+								<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh" style="margin-right:10px"></span>
+							</td>
+							<td ng-click="exibirModalExcluir(jogador, 'aguardando')" align="center">
+								<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-remove"></span>
+							</td>
+						</tr>
+					</table>
+				</div>
+			</div>
 		</div>
 		<div class="col-sm-12 col-lg-12 margin-8" ng-if="dados.quantidade > 0">
 			<p style="color: red;" ng-if="usuarioExistente">Jogador já cadastrado</p>
@@ -863,13 +900,13 @@
 			<div class="modal-content">
 				<div class="modal-body" style="min-height:150px" align="center">
 					<p style="margin:10px 0px 28px 0px">
-						Deseja registrar o resultado da última partida?
+						Deseja substituir esse time pelo próximo da lista?
 					</p>
 					<button type="submit" ng-click="rotacionarFila('fim', true)" onclick="$('#modalIncluirResultado').modal('hide');"
 						style="margin: 5px 0px 5px 5px; width:80px">
 						Sim
 					</button>
-					<button type="submit" ng-click="rotacionarFila('fim', false)" onclick="$('#modalIncluirResultado').modal('hide');"
+					<button type="submit" onclick="$('#modalIncluirResultado').modal('hide');"
 						style="margin: 5px 0px 5px 5px; width:80px">
 						Não
 					</button>
