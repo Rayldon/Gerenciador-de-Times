@@ -99,7 +99,7 @@
 	<script src="angular.min.js"></script>
 	<script>
 		var app = angular.module("app", [])
-		app.controller("appCtrl", function ($scope) {
+		app.controller("appCtrl", function ($scope, $timeout) {
 
 			if (localStorage.dados && localStorage.dados.indexOf('[object Object]') < 0) {
 				$scope.dados = JSON.parse(localStorage.dados)
@@ -154,23 +154,23 @@
 				if ($scope.dados.posicaoHistorico > 0) {
 					$scope.dados.historico = $scope.dados.historico.slice(0, $scope.dados.posicaoHistorico);
 				}
-				if ($scope.dados.historico.length > 10) {
+				if ($scope.dados.historico.length > 15) {
 					$scope.dados.historico = $scope.dados.historico.slice(1, $scope.dados.historico.length);
 				}
 				$scope.dados.historico.push(json);
 				$scope.dados.posicaoHistorico = $scope.dados.historico.length;
-				
+
 				localStorage.dados = JSON.stringify($scope.dados);
 				localStorage.lista = $scope.dados.nomeLista;
 				var stringResultados = JSON.stringify($scope.resultados);
-				
+
 				$scope.jsonString = localStorage.dados;
 				salvarFirebase($scope.dados.nomeLista, $scope.dados.id, localStorage.dados, stringResultados, $scope.dataAtualizacao);
 			}
 
 			$scope.criarLista = function(lista){
 				if(lista){
-					$('#modalCriarLista').modal('hide'); 
+					$('#modalCriarLista').modal('hide');
 					$scope.listaExistente = false;
 					$scope.dados = jsonObj();
 					$scope.dados.nomeLista = lista;
@@ -178,7 +178,7 @@
 				}else{
 					$scope.listaExistente = true;
 				}
-				$scope.loading = false;
+				$scope.hideLoading()
 			}
 
 			$scope.cancelar = function(){
@@ -192,6 +192,7 @@
 				$scope.dados.time2 = [];
 				$scope.dados.aguardando = [];
 				$scope.dados.quantidade = 3;
+				$scope.dados.alteracao = "Limpar lista."
 				salvarSessao();
 			}
 
@@ -206,7 +207,7 @@
 					$scope.dados.dtAtualizacao = dados.dtAtualizacao;
 					$scope.dados.historico = $scope.dados.historico.slice(0, $scope.dados.posicaoHistorico);
 					$scope.dados.posicaoHistorico = $scope.dados.posicaoHistorico - 1;
-					
+
 					$scope.resultados.sort((a,b)=>b.dtResultado-a.dtResultado);
 					if($scope.resultados.length > 0 && $scope.dados.dtAtualizacao < $scope.resultados[0].dtResultado){
 						$scope.resultados = $scope.resultados.slice(1);
@@ -240,7 +241,7 @@
 					$scope.loading = true;
 					if ($scope.dados.time1.indexOf(jogador) >= 0 || $scope.dados.time2.indexOf(jogador) >= 0 || $scope.dados.aguardando.indexOf(jogador) >= 0) {
 						$scope.usuarioExistente = true;
-						$scope.loading = false;
+						$scope.hideLoading()
 						return false;
 					}
 
@@ -253,10 +254,17 @@
 					}
 					this.novoJogador = "";
 					$scope.selecionarJogador(jogador);
+					$scope.dados.alteracao = 'Adicionado o jogador <b>'+jogador+'</b>';
 					salvarSessao();
-					$scope.loading = false;
+					$scope.hideLoading();
 					$scope.usuarioExistente = false;
 				}
+			}
+
+			$scope.hideLoading = function(){
+				$timeout(function () {
+					$scope.loading = false;
+				}, 500);
 			}
 
 			$scope.mostrarEditarQuantidade = function () {
@@ -269,12 +277,13 @@
 
 			$scope.concluirEditarQuantidade = function (rotacionar=false) {
 				$scope.loading = true;
-				var qtd = $scope.dados.quantidade;
+				const qtd = $scope.dados.quantidade;
 				var time = $scope.dados.time1.length <= $scope.dados.time2.length ? 'time1' : 'time2';
 				if (qtd < $scope.dados.time1.length) {
 					time = $scope.dados.time1.length > $scope.dados.time2.length ? 'time1' : 'time2';
 				}
-				var qtdTime = $scope.dados[time].length;
+				const qtdTime = $scope.dados[time].length;
+				$scope.dados.alteracao = "A quantidade dos jogadores dos times foi alterada";
 
 				if (qtdTime > qtd) {
 					$scope.dados.aguardando.unshift($scope.dados[time][qtdTime - 1]);
@@ -293,7 +302,7 @@
 				if(!rotacionar){
 					salvarSessao()
 				}
-				$scope.loading = false;
+				$scope.hideLoading()
 			}
 
 			$scope.removerJogador = function () {
@@ -305,8 +314,9 @@
 					$scope.dados[lista].push($scope.dados.aguardando[0]);
 					$scope.dados.aguardando = $scope.dados.aguardando.slice(1, $scope.dados.aguardando.length);
 				}
+				$scope.dados.alteracao = 'Removido o jogador <b>'+jogador+'</b>';
 				salvarSessao();
-				$scope.loading = false;
+				$scope.hideLoading()
 			}
 
 			$scope.substituirJogador = function (jogadorNovo) {
@@ -325,6 +335,7 @@
 					lista.push(...$scope.dados[listaOrigem].slice(posicao + 1, $scope.dados[listaOrigem].length));
 					$scope.dados[listaOrigem] = lista;
 				}
+				var msgAlteracao = "O jogador <b>"+(posicao+1)+" - "+$scope.dados.jogadorSelecionado+"</b> da lista <b>"+listaOrigem+"</b> foi substituído ";
 
 				posicao = $scope.dados[listaDestino].indexOf(jogadorNovo);
 				if (posicao >= 0) {
@@ -334,8 +345,9 @@
 					$scope.dados[listaDestino] = lista2;
 				}
 				$('#substituirJogador').modal('hide');
+				$scope.dados.alteracao = msgAlteracao+"pelo jogador <b>"+(posicao+1)+" - "+jogadorNovo+"</b> da lista <b>"+listaDestino+"</b>";
 				salvarSessao()
-				$scope.loading = false;
+				$scope.hideLoading()
 			}
 
 			$scope.selecionarTime = function (time) {
@@ -343,6 +355,7 @@
 			}
 
 			$scope.rotacionarFila = function (fila, incluirResultado=false) {
+				console.log("rotacionar", JSON.stringify($scope.dados))
 				if(incluirResultado){
 					$scope.resultados.push({
 						'time1': $scope.dados.time1,
@@ -357,11 +370,12 @@
 				$scope.concluirEditarQuantidade(true);
 				//$('#modalMensagemSubirLista').modal('show');
 				//escalarProximoTime();
-				
+
 				$scope.placarTime1 = 0;
 				$scope.placarTime2 = 0;
 				localStorage.placarTime1 = 0;
 				localStorage.placarTime2 = 0;
+				$scope.dados.alteracao = "Substituído o <b>"+($scope.timeSelecionado=="time1" ? "Time A" : "Time B")+"</b> pela 1º próxima."
 				salvarSessao();
 			}
 
@@ -392,9 +406,10 @@
 						$scope.dados.time1 = lista.slice(0, qtdTime1);
 						$scope.dados.time2 = lista.slice(qtdTime1, qtdTime1+qtdTime2);
 						$scope.dados.aguardando = lista.slice(qtdTime1+qtdTime2, lista.length);
+						$scope.dados.alteracao = "O jogador <b>"+jogador+"</b> subiu para a posição "+buscarPosicaoListaJogador(jogador)+" ";
 						salvarSessao()
 					}
-					$scope.loading = false;
+					$scope.hideLoading()
 				}
 				//$scope.selecionarJogador(jogador);
 			}
@@ -419,8 +434,9 @@
 					$scope.dados.time1 = lista.slice(0, qtdTime1);
 					$scope.dados.time2 = lista.slice(qtdTime1, qtdTime1+qtdTime2);
 					$scope.dados.aguardando = lista.slice(qtdTime1+qtdTime2, lista.length);
+					$scope.dados.alteracao = "O jogador <b>"+jogador+"</b> desceu para a posição "+buscarPosicaoListaJogador(jogador)+" ";
 					salvarSessao()
-					$scope.loading = false;
+					$scope.hideLoading()
 				}
 				//$scope.selecionarJogador(jogador);
 			}
@@ -470,7 +486,7 @@
 				}else{
 					$scope.naoEncontrado = true;
 				}
-				$scope.loading = false;
+				$scope.hideLoading()
 			}
 
 			$scope.escalarProximoTime = function(){
@@ -481,12 +497,12 @@
 			}
 
 			$scope.aumentarPlacar = function(placarTime){
-				$scope[placarTime] = $scope[placarTime] ? $scope[placarTime]+1 : 1;
+				$scope[placarTime] = $scope[placarTime] ? parseInt($scope[placarTime])+1 : 1;
 				localStorage[placarTime] = $scope[placarTime];
 			}
 
 			$scope.diminuirPlacar = function(placarTime){
-				$scope[placarTime] = $scope[placarTime] ? $scope[placarTime]-1 : 0;
+				$scope[placarTime] = $scope[placarTime] ? parseInt($scope[placarTime])-1 : 0;
 				localStorage[placarTime] = $scope[placarTime];
 			}
 
@@ -504,6 +520,16 @@
 			}
 			$scope.proximas = $scope.dividirLista($scope.dados.aguardando);
 			//$scope.$apply();
+
+			function buscarPosicaoListaJogador(jogador){
+				if($scope.dados.time1.indexOf(jogador) >= 0){
+					return ($scope.dados.time1.indexOf(jogador)+1) + " do <b>time A</b>";
+				}else if($scope.dados.time2.indexOf(jogador) >= 0){
+					return ($scope.dados.time2.indexOf(jogador)+1) + " do <b>time B</b>";
+				}else{
+					return ($scope.dados.aguardando.indexOf(jogador)+1) + " da <b>lista de espera</b>";
+				}
+			}
 		});
 
 		function limpar() {
@@ -703,7 +729,7 @@
 						<td align="center" width="7%" ng-click="down(jogador)">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:10px"></span>
 						</td>
-						<td align="center" width="7%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+						<td align="center" width="7%" onclick="window.scrollTo(0,1);$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
 							<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh" style="margin-right:10px"></span>
 						</td>
 						<td ng-click="exibirModalExcluir(jogador, 'time2')" align="center">
@@ -724,7 +750,7 @@
 							<td align="center" width="7%" ng-click="down(jogador)">
 								<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-arrow-down" style="margin-right:10px"></span>
 							</td>
-							<td width="15%" onclick="$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
+							<td width="15%" onclick="window.scrollTo(0,1);$('#substituirJogador').modal('show');" align="center" ng-click="selecionarJogador(jogador)">
 								<span ng-if="isSelecionado(jogador)" class="glyphicon glyphicon-refresh" style="margin-right:10px"></span>
 							</td>
 							<td ng-click="exibirModalExcluir(jogador, 'aguardando')" align="center">

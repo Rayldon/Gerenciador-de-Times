@@ -25,6 +25,9 @@ public class TabAccessAdapter extends FragmentPagerAdapter {
             case 1 :
                 Second second = new Second(this.activity);
                 return second;
+            case 2 :
+                Third third = new Third(this.activity);
+                return third;
             default:
                 return null;
         }
@@ -33,7 +36,7 @@ public class TabAccessAdapter extends FragmentPagerAdapter {
 
     @Override
     public int getCount() {
-        return 2;
+        return 3;
     }
 
     @Nullable
@@ -45,6 +48,8 @@ public class TabAccessAdapter extends FragmentPagerAdapter {
                 return "Lista";
             case 1 :
                 return "Resultado";
+            case 2 :
+                return "Histórico";
             default:
                 return null;
         }

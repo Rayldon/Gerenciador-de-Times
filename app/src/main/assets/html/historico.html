@@ -1,0 +1,139 @@
+<html>
+
+<head>
+	<title>Gerenciador de Times</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="bootstrap/css/bootstrap.min.css">
+	<script src="jquery.min.js"></script>
+	<script src="bootstrap/js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="loading.css">
+
+	<style>
+		tr .grey {
+			background-color: rgb(53, 53, 53);
+			color: white;
+			text-align: center;
+		}
+
+		tr .blue {
+			background-color: dodgerblue;
+			color: white;
+			text-align: center;
+			width: 50%
+		}
+
+		th .blue {
+			background-color: dodgerblue;
+			color: white;
+			text-align: center;
+			width: 50%
+		}
+
+		tr .green {
+			background-color: rgb(28, 207, 82);
+			color: white;
+			text-align: center;
+			width: 50%
+		}
+
+		th .green {
+			background-color: rgb(28, 207, 82);
+			color: white;
+			text-align: center;
+			width: 50%
+		}
+
+		.div-data {
+			border:1px solid black;
+			border-radius: 4px;
+			margin: 2px 2px 15px 2px;
+		}
+
+		.div-titulo {
+			margin:15px;
+			font-size: 14px;
+		}
+	</style>
+
+	<script src="angular.min.js"></script>
+	<script>
+		var app = angular.module("app", [])
+		app.controller("appCtrl", function ($scope) {
+			$scope.historico = localStorage.historico ? JSON.parse(localStorage.historico) : [];
+
+			$scope.carregarHistorico = function(json){
+				$scope.historico = json.historico;
+				$scope.historico.sort(function(a,b){
+					var dadosA = JSON.parse(a);
+					var dadosB = JSON.parse(b);
+				  	return new Date(dadosB.dtAtualizacao) - new Date(dadosA.dtAtualizacao);
+				});
+				localStorage.historico = JSON.stringify(json.historico);
+			}
+
+			$scope.formatDate = function(data) {
+				var date = new Date(data);
+				var hours = date.getHours();
+				var minutes = date.getMinutes();
+				minutes = minutes < 10 ? '0'+minutes : minutes;
+				var strTime = hours + ':' + minutes;
+				var dia = date.getDate() < 10 ? '0'+date.getDate() : date.getDate();
+				var mes = (date.getMonth()+1) < 10 ? '0'+(date.getMonth()+1) : (date.getMonth()+1);
+				return dia + "/" + mes + "/" + date.getFullYear();
+			}
+
+			$scope.formatHorario = function(data) {
+				var date = new Date(data);
+				var hours = date.getHours();
+				var minutes = date.getMinutes();
+				minutes = minutes < 10 ? '0'+minutes : minutes;
+				var strTime = hours + ':' + minutes;
+				return strTime;
+			}
+
+			$scope.dateEquals = function(data1, data2){
+				return data1 == data2;
+			}
+
+			$scope.buscarData = function(json){
+				var dados = JSON.parse(json);
+				return $scope.formatDate(dados.dtAtualizacao)+" - "+$scope.formatHorario(dados.dtAtualizacao);
+			}
+
+			$scope.inserirMensagem = function(json){
+				var id = "div"+$scope.historico.indexOf(json);
+				var dados = JSON.parse(json);
+				if(dados.alteracao){
+					document.getElementById(id).innerHTML = dados.alteracao;
+				}else{
+					document.getElementById(id).innerHTML = " - ";
+				}
+				return "";
+			}
+		});
+
+		function carregarHistorico(json){
+			var scope = angular.element(document.getElementById('appCtrl')).scope();
+			scope.$apply(function () {
+				scope.carregarHistorico(json);
+			})
+		}
+
+		function inserirHtml(element, html){
+			element.innerHTML = html;
+		}
+	</script>
+</head>
+
+<body id="appCtrl" ng-app="app" ng-controller="appCtrl">
+	<br /><br /><br />
+	<div class="col-sm-12 col-lg-12 div-data" ng-repeat="json in historico">
+		{{buscarData(json)}}
+		<div class="div-titulo" id="div{{historico.indexOf(json)}}">
+			{{inserirMensagem(json)}}
+		</div>
+	</div>
+</body>
+
+</html>

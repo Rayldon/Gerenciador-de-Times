@@ -4,7 +4,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.CookieManager;
@@ -14,30 +13,24 @@ import android.webkit.WebView;
 import androidx.fragment.app.Fragment;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-public class Second extends Fragment {
+public class Third extends Fragment {
     private WebView webview;
     private SwipeRefreshLayout swipeRefreshLayout;
     private MainActivity activity;
 
-    public Second(){
+    public Third(){
     }
 
-    public Second(MainActivity activity){
+    public Third(MainActivity activity){
         this.activity = activity;
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View v=inflater.inflate(R.layout.fragment_second, container, false);
-        webview = v.findViewById(R.id.webViewResultado);
-        this.activity.setWebviewResultado(webview);
-
-        View vHistorico=inflater.inflate(R.layout.fragment_third, container, false);
-        this.activity.setWebviewHistorico(vHistorico.findViewById(R.id.webViewHistorico));
+        View v=inflater.inflate(R.layout.fragment_third, container, false);
+        webview = v.findViewById(R.id.webViewHistorico);
+        this.activity.setWebviewHistorico(webview);
 
         CookieManager.getInstance().setAcceptCookie(true);
         CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true);
@@ -65,9 +58,9 @@ public class Second extends Fragment {
             webview.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         }
 
-        webview.loadUrl("file:///android_asset/html/resultado.html");
+        webview.loadUrl("file:///android_asset/html/historico.html");
 
-        swipeRefreshLayout = v.findViewById(R.id.swipeResultado);
+        swipeRefreshLayout = v.findViewById(R.id.swipeHistorico);
         swipeRefreshLayout.setProgressViewOffset(false, 0,180);
 
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {

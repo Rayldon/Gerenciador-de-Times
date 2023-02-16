@@ -32,6 +32,7 @@ import java.util.Map;
 public class MainActivity extends AppCompatActivity {
     private WebView webview;
     private WebView webviewResultado;
+    private WebView webviewHistorico;
     private MainActivity activity;
     public String url = "";
     private String lista = "";
@@ -128,6 +129,7 @@ public class MainActivity extends AppCompatActivity {
 
                                 webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
                                 webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
+                                webviewHistorico.loadUrl("javascript:carregarHistorico(" + json + ")");
                                 break;
                             }
                         } else {
@@ -151,6 +153,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        webviewHistorico.post(new Runnable() {
+            @Override
+            public void run() {
+                webviewHistorico.loadUrl("javascript:carregarHistorico("+json+")");
+            }
+        });
+
         //if(id == null) {
             db.collection("listas").whereEqualTo("lista", lista).get()
                     .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
@@ -169,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
                                             String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
                                             webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
                                             webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
+                                            webviewHistorico.loadUrl("javascript:carregarHistorico("+json+")");
                                         }
                                         break;
                                     }
@@ -227,6 +237,10 @@ public class MainActivity extends AppCompatActivity {
 
     public void setWebviewResultado(WebView webviewResultado) {
         this.webviewResultado = webviewResultado;
+    }
+
+    public void setWebviewHistorico(WebView webviewHistorico) {
+        this.webviewHistorico = webviewHistorico;
     }
 
     public String getLista() {
