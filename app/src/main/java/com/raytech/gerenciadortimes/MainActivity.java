@@ -1,62 +1,62 @@
 package com.raytech.gerenciadortimes;
 
-import static android.content.ContentValues.TAG;
-
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.webkit.CookieManager;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
-
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.material.tabs.TabLayout;
-import com.google.firebase.Timestamp;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private WebView webview;
-    private WebView webviewResultado;
-    private WebView webviewHistorico;
     private MainActivity activity;
     public String url = "";
     private String lista = "";
     private Date ultimaAtualizacao = new Date();
-    FirebaseFirestore db = FirebaseFirestore.getInstance();
+    //FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-    ViewPager viewPager;
-    TabLayout tabLayout;
-    TabAccessAdapter tabAccessAdapter;
-
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    @RequiresApi(api = Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         activity = this;
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        webview = (WebView) findViewById(R.id.webView);
+        CookieManager.getInstance().setAcceptCookie(true);
+        //CookieManager.getInstance().setAcceptThirdPartyCookies(webview, true);
+        webview.setVerticalScrollBarEnabled(false);
+        webview.getSettings().setJavaScriptEnabled(true);
+        webview.setLayerType(webview.LAYER_TYPE_SOFTWARE, null);
+        webview.getSettings().setPluginState(WebSettings.PluginState.ON);
+        webview.getSettings().setAllowFileAccess(true);
+        //webview.getSettings().setAllowFileAccessFromFileURLs(true);
+        //webview.getSettings().setAllowUniversalAccessFromFileURLs(true);
+        webview.getSettings().setJavaScriptCanOpenWindowsAutomatically(true);
+        webview.getSettings().setLoadWithOverviewMode(true);
+        webview.getSettings().setUseWideViewPort(true);
+        webview.getSettings().setDomStorageEnabled(true);
+        webview.getSettings().setRenderPriority(WebSettings.RenderPriority.HIGH);
+        webview.clearCache(true);
+        webview.clearHistory();
+        webview.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+        webview.setScrollbarFadingEnabled(false);
+        webview.getSettings().setCacheMode(WebSettings.LOAD_NO_CACHE);
+        webview.addJavascriptInterface(new LoadMenu(activity), "android");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webview.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+        } else {
+            webview.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+        }
 
-        viewPager = (ViewPager) findViewById(R.id.view_pager);
-        tabAccessAdapter = new TabAccessAdapter(getSupportFragmentManager(), this);
-        viewPager.setAdapter(tabAccessAdapter);
-
-        tabLayout = (TabLayout) findViewById(R.id.main_tabs);
-        tabLayout.setupWithViewPager(viewPager);
+        webview.loadUrl("file:///android_asset/html/teste.html");
     }
 
     @Override
@@ -89,170 +89,6 @@ public class MainActivity extends AppCompatActivity {
         }
         activity.invalidateOptionsMenu();
         return super.onOptionsItemSelected(item);
-    }
-
-    public void criarLista(String lista){
-        final String novaLista = lista.trim().toUpperCase();
-        db.collection("listas").whereEqualTo("lista", novaLista).get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            if (task.getResult() != null && !task.getResult().isEmpty()) {
-                                webview.loadUrl("javascript:criarLista('')");
-                            } else {
-                                webview.loadUrl("javascript:criarLista('"+novaLista+"')");
-                            }
-                        }
-                    }
-                });
-    }
-
-    public void carregarLista(){
-        carregarLista(lista);
-    }
-
-    public void carregarLista(String lista){
-        lista = lista.trim().toUpperCase();
-        this.lista = lista;
-        db.collection("listas").whereEqualTo("lista", lista).get()
-            .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                    if (task.isSuccessful()) {
-                        if (task.getResult() != null && !task.getResult().isEmpty()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                String json = document.get("json").toString();
-                                String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
-                                Timestamp timestamp = (Timestamp) document.get("data_atualizacao");
-                                String data = timestamp.toDate().toString();
-
-                                webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
-                                webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
-                                webviewHistorico.loadUrl("javascript:carregarHistorico(" + json + ")");
-                                break;
-                            }
-                        } else {
-                            webview.loadUrl("javascript:carregarLista('', '')");
-                        }
-                    }
-                }
-            });
-    }
-
-    public void salvar(final String lista, String id, String json, String resultados, String dataAtualizacao){
-        Map<String, Object> registro = new HashMap<>();
-        registro.put("lista", lista);
-        registro.put("json", json);
-        registro.put("resultados", resultados);
-        registro.put("data_atualizacao", new Date());
-        webviewResultado.post(new Runnable() {
-            @Override
-            public void run() {
-                webviewResultado.loadUrl("javascript:carregarResultado("+resultados+")");
-            }
-        });
-
-        webviewHistorico.post(new Runnable() {
-            @Override
-            public void run() {
-                webviewHistorico.loadUrl("javascript:carregarHistorico("+json+")");
-            }
-        });
-
-        //if(id == null) {
-            db.collection("listas").whereEqualTo("lista", lista).get()
-                    .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                        @Override
-                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                            if (task.isSuccessful()) {
-                                if (task.getResult() != null && !task.getResult().isEmpty()) {
-                                    for (QueryDocumentSnapshot document : task.getResult()) {
-                                        Timestamp timestamp = (Timestamp) document.get("data_atualizacao");
-                                        String data = timestamp.toDate().toString();
-
-                                        if(data.equals(dataAtualizacao)){
-                                            update(document.getId(), registro);
-                                        }else {
-                                            String json = document.get("json").toString();
-                                            String resultado = document.get("resultados") != null ? document.get("resultados").toString() : "[]";
-                                            webview.loadUrl("javascript:carregarLista("+json+", "+resultado+", '"+data+"')");
-                                            webviewResultado.loadUrl("javascript:carregarResultado("+resultado+")");
-                                            webviewHistorico.loadUrl("javascript:carregarHistorico("+json+")");
-                                        }
-                                        break;
-                                    }
-                                } else {
-                                    insert(registro);
-                                }
-                            } else {
-                                Log.w(TAG, "Erro ao obter lista.", task.getException());
-                            }
-                        }
-                    });
-        //}else{
-            //update(id, registro);
-        //}
-    }
-
-    private void insert(Map<String, Object> registro){
-        db.collection("listas").add(registro)
-            .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                @Override
-                public void onSuccess(DocumentReference documentReference) {
-                    Log.d(TAG, "Executado com sucesso: " + documentReference.getId());
-                    String data = registro.get("data_atualizacao").toString();
-                    webview.loadUrl("javascript:salvarId('"+documentReference.getId()+"','"+data+"')");
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.w(TAG, "Ocorreu um erro", e);
-                }
-            });
-    }
-
-    private void update(String id, Map<String, Object> registro){
-        db.collection("listas").document(id).update(registro)
-            .addOnSuccessListener(new OnSuccessListener<Object>() {
-                @Override
-                public void onSuccess(Object o) {
-                    Log.d(TAG, "Executado com sucesso");
-                    String data = registro.get("data_atualizacao").toString();
-                    webview.loadUrl("javascript:salvarId('"+id+"','"+data+"')");
-                }
-            })
-            .addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    Log.w(TAG, "Ocorreu um erro", e);
-                }
-            });
-    }
-
-    public void setWebview(WebView webview) {
-        this.webview = webview;
-    }
-
-    public void setWebviewResultado(WebView webviewResultado) {
-        this.webviewResultado = webviewResultado;
-    }
-
-    public void setWebviewHistorico(WebView webviewHistorico) {
-        this.webviewHistorico = webviewHistorico;
-    }
-
-    public String getLista() {
-        return lista;
-    }
-
-    public Date getUltimaAtualizacao() {
-        return ultimaAtualizacao;
-    }
-
-    public void setUltimaAtualizacao(Date ultimaAtualizacao) {
-        this.ultimaAtualizacao = ultimaAtualizacao;
     }
 }
 

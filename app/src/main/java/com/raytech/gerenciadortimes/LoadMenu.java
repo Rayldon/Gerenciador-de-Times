@@ -22,16 +22,16 @@ public class LoadMenu {
 
   @JavascriptInterface
   public void salvar(String lista, String id, String json, String resultados, String dataAtualizacao){
-    main.salvar(lista.trim().toUpperCase(), id, json, resultados, dataAtualizacao);
+    //main.salvar(lista.trim().toUpperCase(), id, json, resultados, dataAtualizacao);
   }
 
   @JavascriptInterface
   public void buscar(String lista){
-    main.carregarLista(lista);
+   // main.carregarLista(lista);
   }
 
   @JavascriptInterface
   public void criarLista(String lista){
-    main.criarLista(lista);
+    //main.criarLista(lista);
   }
 }
